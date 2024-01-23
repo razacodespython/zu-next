@@ -25,95 +25,13 @@ export default function Home() {
     }
   };
 
-  const avlNetwork = {
-    137: {
-      chainId: `0x${Number(137).toString(16)}`,
-      rpcUrls: ["https://polygon-rpc.com"],
-      chainName: "Polygon Mainnet",
-      nativeCurrency: {
-        name: "MATIC",
-        symbol: "MATIC",
-        decimals: 18
-      },
-      blockExplorerUrls: ["https://polygonscan.com/"]
-    },
-    43114: {
-      chainId: `0x${Number(43114).toString(16)}`,
-      rpcUrls: ["https://api.avax.network/ext/bc/C/rpc"],
-      chainName: "Avalanche C-Chain",
-      nativeCurrency: {
-        name: "Avalanche",
-        symbol: "AVAX",
-        decimals: 18
-      },
-      blockExplorerUrls: ["https://snowtrace.io/"]
-    }
-  };
-
-  const switchNetwork = async (chainId) => {
-    try {
-      await window.ethereum.request({
-        method: "wallet_addEthereumChain",
-        params: [avlNetwork[`${chainId}`]]
-      });
-      setNetwork(avlNetwork[`${chainId}`].chainName);
-      setChainId(chainId);
-    } catch (error) {
-      setMsg(error);
-    }
-  };
-
+  
   function splitIntoPairs(str) {
     return str.match(/.{1,2}/g) || [];
   }
-const NETWORK_ID = process.env.CHAIN_ID
-const sendProof = async (message) => {
+
+  const sendProof = async (message) => {
   console.log("generating proof")
-  // document.getElementById("web3_message").textContent="Please sign the message ✍️";
-  /*
-  var msgParams = JSON.stringify({
-    types: {
-        EIP712Domain: [
-            { name: 'name', type: 'string' },
-            { name: 'version', type: 'string' },
-            { name: 'chainId', type: 'uint256' },
-            { name: 'verifyingContract', type: 'address' },
-        ],
-        Comment: [
-            { name: 'event', type: 'string' },
-            { name: 'description', type: 'string' }
-        ],
-    },
-    primaryType: 'Comment',
-    domain: {
-        name: 'Zupass Tickets',
-        version: '1',
-        chainId: parseInt(NETWORK_ID),
-        verifyingContract: COMMENT_VERIFIER_ADDRESS,
-    },
-    message: {
-        event: event,
-        description: description,
-    },
-  });
-  
-  var signature = await ethereum.request({
-    method: "eth_signTypedData_v4",
-    params: [accounts[0], msgParams],
-  });
-
-  var hashedMessage = ethers.utils.hashMessage(msgParams)  
-  const hashedMessageArray = ethers.utils.arrayify(hashedMessage)
-
-  var publicKey = ethers.utils.recoverPublicKey(hashedMessage, signature)
-  //publicKey = publicKey.substring(4)
-
-  let pub_key_x = publicKey.substring(0, 64);
-  let pub_key_y = publicKey.substring(64);
-  
-  var sSignature = Array.from(ethers.utils.arrayify(signature))
-  sSignature.pop()
-*/
 
   const provider = new ethers.providers.Web3Provider(window.ethereum, "any");
   await provider.send("eth_requestAccounts", []);
@@ -157,58 +75,13 @@ const sendProof = async (message) => {
 
   var tHashedMessage = Array.from(proof.publicInputs.values());
 
-  //proof = "0x" + ethereumjs.Buffer.Buffer.from(proof.proof).toString('hex')
-
-  /*
-  var tHashedMessage = []
-  for (let entry of proof.publicInputs.entries()) {
-    tHashedMessage.push(entry)
-  }
-  */
-
-  /*
-  //splitIntoPairs(hashedMessage.substring(2))
-  for(var i=0; i<tHashedMessage.length; i++)
-  {
-    tHashedMessage[i] = "0x00000000000000000000000000000000000000000000000000000000000000" + tHashedMessage[i]
-  }
-  */
-
-  // var qrData = {
-  //   proof: proof,
-  //   publicParams: tHashedMessage,
-  //   message: message
-  // }
-  // var qrDataStr = JSON.stringify(qrData);
-  
-  // console.log(qrData)
-  // console.log(qrDataStr)
-
-  // //qrcode.makeCode(qrDataStr);// qr is to big
-  // var qrcode = new QRCode("qrcode",'placeholder')
-
-  // await updateMetadata(proof, tHashedMessage, message)
   console.log("proof: "+proof.proof, "hashedmsg: "+ tHashedMessage, "message: "+message)
-  /*
-  const result = await my_contract.methods.sendProof(proof, tHashedMessage, title, text)
-  .send({ from: accounts[0], gas: 0, value: 0 })
-  .on('transactionHash', function(hash){
-    document.getElementById("web3_message").textContent="Executing...";
-  })
-  .on('receipt', function(receipt){
-    document.getElementById("web3_message").textContent="Success.";    })
-  .catch((revertReason) => {
-    console.log("ERROR! Transaction reverted: " + revertReason.receipt.transactionHash)
-  });
-  */
 
 
 }
-
   return (
     <>
      <h1>Hello world</h1>
-     <h1>Connect with Ethers.JS</h1>
       <button onClick={connectButton}>Connect Wallet</button>
       <br />
       <p>Address: {addi}</p>
