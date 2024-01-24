@@ -25,23 +25,25 @@ fn main(
     assert(valid_signature);
 
 
-    // Nullify the leaf with the message
-
-    let mut hashedMessageFieldArray:[Field; 32] = [
+    // Nullify by hashing the public key with the message
+    let mut nullifierFields:[Field; 64] = [
       0,0,0,0,0,0,0,0,0,0,
       0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0,
       0,0,0,0,0,0,0,0,0,0,
-      0,0
+      0,0,0,0,0,0,0,0,0,0,
+      0,0,0,0,0,0,0,0,0,0,0,0
     ];
 
     for i in 0..32 {
-      hashedMessageFieldArray[i] = hashed_message[i] as Field;
+      nullifierFields[i] = pub_key_x[i] as Field;
     };
 
-    let hashedMessageFieldHash = std::hash::pedersen_hash(hashedMessageFieldArray);
+    for i in 32..64 {
+      nullifierFields[i] = hashed_message[i-32] as Field;
+    };
 
-
-    let nullifier = std::hash::pedersen_hash([leaf, hashedMessageFieldHash]);
+    let nullifier = std::hash::pedersen_hash(nullifierFields);
 
     nullifier
 }
