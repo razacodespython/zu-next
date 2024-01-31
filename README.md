@@ -1,39 +1,44 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Scope
+1. NFT contract with merkle root containing whitelist of addresses that are allowed to mint nft ticket
+2. on Ethereum, merkle root is queried and verified with a storage proof
+3. Merkle root, signed hash message and public key used as input for the circuit
+4. Circuit generates proof
+5. App stores proof in key value pair in .json [not done yet]
+6. Verifier retrieves proof based on key [not done yet]
+7. verifies proof [tbd onchain vs off chain]
 
-## Getting Started
+# Todo
 
-First, run the development server:
+## QR Code @raza
+Include a .json to store the proof with a corresponding 'key', like this[as an example]:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
+{
+'x01':'10983274198023740982537423094857'
+}
+```
+Key is converted in a QR code, insteda of proof. Proof too much data for a QR code.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+When verifier scans QR code, it looks up the value for the key, and passes it to the verifier contract.
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+## Retrieve & Verify with storage proof @ahmed
+Retrieval of merkle root on Scroll via L1-Ethereum is generating some issues. Engineers are looking at this. Ahmed to try again asap.
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+## Dynamic address retrieval from Merkle Tree @ahmed
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+Right now the address is retrieved from merkle tree by passing the index number for the leave.  
+So it's hardcoded.
+@Ahmed will adjust this so that the connect wallet's address is dynamically retrieved.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-## Learn More
+## Merkle Tree generation @tbd
 
-To learn more about Next.js, take a look at the following resources:
+Right now a pedersen hash is used to generate the Merkle Root with all the addresses as Noir uses this.  
+This is a manual process, talking to engineers to generate a script for this. Python not suitable, need to check in Rust.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Decentralised Storage @ahmed
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
-# zu-next
+Instead of using a database, we can opt to store data on arweave or filecoin, so data is still decentralised.
+Data to be stored:
+1. key value pair for QR code
+2. ...
