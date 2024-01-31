@@ -11,7 +11,7 @@
 
 ## QR Code @raza
 Include a .json to store the proof with a corresponding 'key', like this[as an example]:
-
+max 200 characters!
 ```
 {
 'x01':'10983274198023740982537423094857'
