@@ -9,7 +9,7 @@ fn main(
   pub_key_y: [u8; 32],
   signature: [u8; 64],
   hashed_message: pub [u8; 32],
-  root: Field, index: Field, hash_path: [Field; 2]
+  root: pub Field, index: Field, hash_path: [Field; 2]
   ) -> pub Field
 {
     let key = ecrecover::secp256k1::PubKey::from_xy(pub_key_x, pub_key_y);
