@@ -10,8 +10,8 @@ const url ='https://sepolia-rpc.scroll.io';
 const httpProvider = new Web3.providers.HttpProvider(url);
 const w3 = new Web3(httpProvider);
 
-const block_number = 2782513;
-const simple_contract = '0xC73BfBD94fb1FD860997D4E76D116BDE0333BeEf'
+const block_number = 2914701;
+const simple_contract = '0x2c32750615bc909BaB397F315147186e09F3df7F'
 const storage_key = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 // Value stored at that key is 12
@@ -27,7 +27,8 @@ async function verify_proof(contractAddress, storageKey, proof) {
 
 async function main() {
   const storage_value = parseInt(await w3.eth.getStorageAt(simple_contract, storage_key, block_number), 16);
-  console.log(`Value at storage key: ${storage_value}`);
+  console.log(`Storage key: ${storage_key}`);
+  console.log(`Value: ${storage_value}`);
 
   const proof = await w3.eth.getProof(simple_contract, [storage_key], block_number);
   let cleaned_proof = {
