@@ -23,6 +23,18 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     bool public forceClosed;
 
 
+    // ==============================
+    // EVENTS 
+    // ==============================
+    event TicketMinted(address to, uint256 tokenId, string uri);
+    event TicketPriceChanged(uint256 newPrice);
+    event TicketMintCloseTimeChanged(uint40 newTime);
+    event EventTimeChanged(uint40 newTime);
+    event TicketSalesForceClosed(bool status);
+    event Withdraw(address recipent);
+
+
+
 
     /**
      * 
@@ -64,6 +76,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         handlePayment(payer);
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
+
+        emit TicketMinted(to, tokenId, uri);
     }
 
     /**
@@ -85,6 +99,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      */
     function setTicketPrice(uint256 _ticketPrice) public onlyOwner {
         ticketPrice = _ticketPrice;
+
+        emit TicketPriceChanged(_ticketPrice);
     }
 
     /**
@@ -94,6 +110,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      */
     function setTicketMintCloseTime(uint40 _ticketMintCloseTime) public onlyOwner {
         ticketMintCloseTime = _ticketMintCloseTime;
+
+        emit TicketMintCloseTimeChanged(_ticketMintCloseTime);
     }
 
     /**
@@ -103,6 +121,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      */
     function setEventTime(uint40 _eventTime) public onlyOwner {
         eventTime = _eventTime;
+
+        emit EventTimeChanged(_eventTime);
     }
 
     /**
@@ -112,6 +132,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      */
     function forceToggleTicketSales(bool status) public onlyOwner {
         forceClosed = status;
+
+        emit TicketSalesForceClosed(status);
     }
 
     /**
@@ -121,6 +143,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      */
     function withdraw(address recipent) public onlyOwner {
         paymentToken.transfer(recipent, paymentToken.balanceOf(address(this)));
+
+        emit Withdraw(recipent);
     }
 
     // =============================
