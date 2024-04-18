@@ -22,9 +22,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     // this is the state of the ticket minting
     bool public forceClosed;
 
-
     // ==============================
-    // EVENTS 
+    // EVENTS
     // ==============================
     event TicketMinted(address to, uint256 tokenId, string uri);
     event TicketPriceChanged(uint256 newPrice);
@@ -33,17 +32,14 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     event TicketSalesForceClosed(bool status);
     event Withdraw(address recipent);
 
-
-
-
     /**
-     * 
+     *
      * @param eventAdmin this is the address of the event admin
      * @param name this is the name of the ticket
      * @param symbol this is the TICKER symbol of the ticket
      * @param trustedForwarder this is the trusted forwarder address [responsilbe for sponsored txs]
      * @param _paymentToken this is the address of the token used to pay for the ticket
-     * @param _eventTime this is the time stamp for the event 
+     * @param _eventTime this is the time stamp for the event
      * @param _ticketMintCloseTime this is the time the ticket mint would be closed
      * @param _ticketPrice this is the price of the ticket
      */
