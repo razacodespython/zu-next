@@ -7,13 +7,19 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 contract TicketFactory is Ownable {
+    struct TicketData {
+        address ticket;
+        address verifier;
+    }
     // ==============================
     // STATE VARIABLES
     // ==============================
     // this the trusted forwarder address of the sponspored tx component
     address public trustedForwarder;
     // this mapping stores
-    mapping(bytes32 => address) public tickets;
+    mapping(uint256 => address) public tickets;
+    // ticket count 
+    uint256 public ticketCount;
 
 
 
@@ -44,14 +50,14 @@ contract TicketFactory is Ownable {
         uint40 _ticketMintCloseTime,
         uint256 _ticketPrice
     ) external returns (address) {
-        bytes32 ticketHash = keccak256(abi.encodePacked(owner, name, symbol, _eventTime));
         Ticket ticket = new Ticket(
             owner, name, symbol, trustedForwarder, _paymentToken, _eventTime, _ticketMintCloseTime, _ticketPrice
         );
 
-        tickets[ticketHash] = address(ticket);
+        tickets[ticketCount] = address(ticket);
 
         emit TicketCreated(address(ticket), name, symbol);
+        ticketCount += 1;
 
         return address(ticket);
     }
