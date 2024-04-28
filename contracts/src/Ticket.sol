@@ -19,6 +19,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     uint40 public eventTime;
     // this is the time the ticket mint would be closed
     uint40 public ticketMintCloseTime;
+    // mapping that indicates if a ticket has been used
+    mapping(uint256 => bool) public usedTickets;
     // this is the state of the ticket minting
     bool public forceClosed;
 
@@ -74,6 +76,16 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         _setTokenURI(tokenId, uri);
 
         emit TicketMinted(to, tokenId, uri);
+    }
+
+    /**
+     *
+     * @notice this function is used to check if a ticket has been used
+     * @param tokenId this is the tokenId to be checked
+     */
+    function useTicket(uint256 tokenId) public {
+        require(ownerOf(tokenId) == _msgSender(), "Ticket: caller is not the owner of the ticket");
+        usedTickets[tokenId] = true;
     }
 
     /**

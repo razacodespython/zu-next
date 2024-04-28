@@ -6,18 +6,19 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
+struct TicketData {
+    address ticket;
+    address verifier;
+}
+
 contract TicketFactory is Ownable {
-    struct TicketData {
-        address ticket;
-        address verifier;
-    }
     // ==============================
     // STATE VARIABLES
     // ==============================
     // this the trusted forwarder address of the sponspored tx component
     address public trustedForwarder;
     // this mapping stores
-    mapping(uint256 => address) public tickets;
+    mapping(uint256 => TicketData) public tickets;
     // ticket count 
     uint256 public ticketCount;
 
@@ -26,7 +27,8 @@ contract TicketFactory is Ownable {
     // ==============================
     // EVENTS
     // ==============================
-    event TicketCreated(address indexed ticketAddress, string name, string symbol);
+    event TicketCreated(address indexed ticketAddress, uint256 tokenId, string symbol);
+    event VerifierContractSet(address indexed ticketAddress, address verifier);
 
 
 
@@ -50,15 +52,39 @@ contract TicketFactory is Ownable {
         uint40 _ticketMintCloseTime,
         uint256 _ticketPrice
     ) external returns (address) {
+        uint256 tokenId = ticketCount;
         Ticket ticket = new Ticket(
             owner, name, symbol, trustedForwarder, _paymentToken, _eventTime, _ticketMintCloseTime, _ticketPrice
         );
-
-        tickets[ticketCount] = address(ticket);
-
-        emit TicketCreated(address(ticket), name, symbol);
+        tickets[tokenId].ticket = address(ticket);
         ticketCount += 1;
-
+        
+        emit TicketCreated(address(ticket), tokenId, symbol);
         return address(ticket);
     }
+
+    /**
+     * @notice function is used to set the verifier contract for a ticket
+     * @param ticketId this is the ID of the ticket
+     * @param verifier this is the address of the verifier contract
+     */
+    function setVerificationContract(uint256 ticketId, address verifier) external onlyOwner {
+        address ticketOwner = Ownable(tickets[ticketId].ticket).owner();
+        require(ticketOwner == msg.sender, "TicketFactory: caller is not the ticket owner");
+        tickets[ticketId].verifier = verifier;
+
+        emit VerifierContractSet(tickets[ticketId].ticket, verifier);
+    }
+
+    /**
+     * @notice function sets the trusted forwarder address
+     * @param _trustedForwarder address of the new trusted forwarder
+     */
+    function setTrustedForwarder(address _trustedForwarder) external onlyOwner {
+        trustedForwarder = _trustedForwarder;
+    }
 }
+
+
+
+// TESTNET DEPLOYMENT: 0x7a38630137f22de9c11fd67c997751b608899c81
