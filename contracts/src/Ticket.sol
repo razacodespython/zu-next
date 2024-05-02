@@ -7,12 +7,21 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
+
+
+enum TicketFlavour {
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six
+}
+
 contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     // ==============================
     // STATE VARIABLES
     // ==============================
-    // this is the price in wie the ticket would be going for
-    uint256 public ticketPrice;
     // this is the token used to pay for the ticket
     IERC20 public paymentToken;
     // this is the time the event would be holding
@@ -23,12 +32,15 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     mapping(uint256 => bool) public usedTickets;
     // this is the state of the ticket minting
     bool public forceClosed;
+    // Ticket flavour price [this is the price in wie the ticket would be going for]
+    mapping(TicketFlavour => uint256) public ticketFlavourPrice;
+
 
     // ==============================
     // EVENTS
     // ==============================
-    event TicketMinted(address to, uint256 tokenId, string uri);
-    event TicketPriceChanged(uint256 newPrice);
+    event TicketMinted(address to, uint256 tokenId, string uri, TicketFlavour flavour);
+    event TicketPriceChanged(uint256 newPrice, TicketFlavour flavour);
     event TicketMintCloseTimeChanged(uint40 newTime);
     event EventTimeChanged(uint40 newTime);
     event TicketSalesForceClosed(bool status);
@@ -53,12 +65,15 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         IERC20 _paymentToken,
         uint40 _eventTime,
         uint40 _ticketMintCloseTime,
-        uint256 _ticketPrice
+        uint256[] memory _ticketPrice
     ) ERC721(name, symbol) Ownable(eventAdmin) ERC2771Context(trustedForwarder) {
         paymentToken = _paymentToken;
         eventTime = _eventTime;
         ticketMintCloseTime = _ticketMintCloseTime;
-        ticketPrice = _ticketPrice;
+        
+        for (uint256 i = 0; i < _ticketPrice.length; i++) {
+            ticketFlavourPrice[TicketFlavour(i)] = _ticketPrice[i];
+        }
     }
 
     /**
@@ -68,14 +83,14 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @param tokenId this is the token ID to be minted
      * @param uri this is the Metadata URL
      */
-    function purchaseTicket(address to, uint256 tokenId, string memory uri, address payer) public onlyOwner {
+    function purchaseTicket(address to, uint256 tokenId, string memory uri, address payer, TicketFlavour flavour) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
-        handlePayment(payer);
+        handlePayment(payer, flavour);
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
 
-        emit TicketMinted(to, tokenId, uri);
+        emit TicketMinted(to, tokenId, uri, flavour);
     }
 
     /**
@@ -105,10 +120,10 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @notice this function is used to set the price this ticket can be purchased at
      * @param _ticketPrice this is the price of the ticket
      */
-    function setTicketPrice(uint256 _ticketPrice) public onlyOwner {
-        ticketPrice = _ticketPrice;
+    function setTicketPrice(uint256 _ticketPrice, TicketFlavour flavour) public onlyOwner {
+        ticketFlavourPrice[flavour] = _ticketPrice;
 
-        emit TicketPriceChanged(_ticketPrice);
+        emit TicketPriceChanged(_ticketPrice, flavour);
     }
 
     /**
@@ -175,7 +190,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @dev this function is used to debit ERC20 token from a `payer`, the amount debitted is the current ticket price
      * @param payer this is the address paying for ticket
      */
-    function handlePayment(address payer) internal {
-        paymentToken.transferFrom(payer, address(this), ticketPrice);
+    function handlePayment(address payer, TicketFlavour flavour) internal {
+        paymentToken.transferFrom(payer, address(this), ticketFlavourPrice[flavour]);
     }
 }

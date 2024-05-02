@@ -31,7 +31,7 @@ export default function Home() {
     }
   };
 
-  
+
   function splitIntoPairs(str) {
     return str.match(/.{1,2}/g) || [];
   }
@@ -86,7 +86,7 @@ export default function Home() {
       pub_key_y: Array.from(ethers.utils.arrayify("0x"+pub_key_y)),
       signature: sSignature,
       hashed_message: Array.from(ethers.utils.arrayify(hashedMessage))
-    }; 
+    };
     //this one works 👇
     // const input = {
     //   hash_path: ["0x000000000000000000000000bef34f2FCAe62dC3404c3d01AF65a7784c9c4A19","0x00000000000000000000000008966BfFa14A7d0d7751355C84273Bb2eaF20FC3"],
@@ -96,7 +96,7 @@ export default function Home() {
     //   pub_key_y: Array.from(ethers.utils.arrayify("0x"+pub_key_y)),
     //   signature: sSignature,
     //   hashed_message: Array.from(ethers.utils.arrayify(hashedMessage))
-    // };  
+    // };
 
     // const input = {
     //   hash_path: ["0x000000000000000000000000AFe1E78912aD55D7aD0850E6868FDf54E3c9ba43","0x1c3e85801102cb419e47145809fac441e38f2cefca80f55d41ed7f341b4a879e"],
@@ -106,7 +106,7 @@ export default function Home() {
     //   pub_key_y: Array.from(ethers.utils.arrayify("0x"+pub_key_y)),
     //   signature: sSignature,
     //   hashed_message: Array.from(ethers.utils.arrayify(hashedMessage))
-    // };  
+    // };
 
     console.log("got the input next step generating proof")
     console.log(input)
@@ -161,15 +161,15 @@ export default function Home() {
         },
         body: JSON.stringify({ key }),
       });
-  
+
       const { proofHex } = await response.json();
-  
+
       // Proceed with verification using the fetched proofHex
       const abi = [
         "function verify(bytes calldata _proof, bytes32[] calldata _publicInputs) external view returns (bool)"
       ];
       const verifierContract = new ethers.Contract("0x02801ed0D4A5dFd0bf82C074e1f40FBcb4a2e24F", abi, signer);
-  
+
       const verificationResponse = await verifierContract.verify(proofHex, publicInputs);
       if (verificationResponse === true) {
         console.log("Verification successful!");
@@ -183,7 +183,7 @@ export default function Home() {
       // Handle errors (e.g., network error, proof not found, etc.)
     }
   };
-  
+
 
   const fetchProofKeyAndGenerateQR = async () => {
     try {
@@ -197,13 +197,17 @@ export default function Home() {
 
   return (
     <>
-     <h1>Hello world</h1>
+     <h1>Event Ticketing</h1>
       <button onClick={connectButton}>Connect Wallet</button>
       <br />
       <p>Address: {addi}</p>
       <p>Network: {network}</p>
       <p>Chain ID : {chainId}</p>
       {msg && <p>{msg}</p>}
+
+      <h3>Event managers or creators section</h3>
+      <p>Create Event</p>
+      {/* create new event */}
       <button onClick={() => sendProof("Ethticket")}>Get proof</button>
       {/* Button to generate QR code */}
       <button onClick={fetchProofKeyAndGenerateQR}>Generate QR Code</button>
