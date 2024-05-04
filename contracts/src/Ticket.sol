@@ -34,12 +34,16 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     bool public forceClosed;
     // Ticket flavour price [this is the price in wie the ticket would be going for]
     mapping(TicketFlavour => uint256) public ticketFlavourPrice;
+    // Total number of tickets minted
+    uint256 public totalTicketsMinted;
+    /// Ticket flavour count
+    uint256 public ticketFlavourCount;
 
 
     // ==============================
     // EVENTS
     // ==============================
-    event TicketMinted(address to, uint256 tokenId, string uri, TicketFlavour flavour);
+    event TicketMinted(address indexed to, uint256 tokenId, string uri, TicketFlavour flavour);
     event TicketPriceChanged(uint256 newPrice, TicketFlavour flavour);
     event TicketMintCloseTimeChanged(uint40 newTime);
     event EventTimeChanged(uint40 newTime);
@@ -69,11 +73,19 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     ) ERC721(name, symbol) Ownable(eventAdmin) ERC2771Context(trustedForwarder) {
         paymentToken = _paymentToken;
         eventTime = _eventTime;
+
+        // mint close time should be less than event time
+        require(_ticketMintCloseTime < _eventTime, "Ticket: Invalid mint close time");
         ticketMintCloseTime = _ticketMintCloseTime;
+
+        // ensure the length of the ticket price is equal to the length of the TicketFlavour enum
+        require(_ticketPrice.length <= 6, "Ticket: Invalid ticket price length");
         
         for (uint256 i = 0; i < _ticketPrice.length; i++) {
             ticketFlavourPrice[TicketFlavour(i)] = _ticketPrice[i];
         }
+
+        ticketFlavourCount = _ticketPrice.length;
     }
 
     /**
@@ -89,6 +101,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         handlePayment(payer, flavour);
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
+        totalTicketsMinted += 1;
 
         emit TicketMinted(to, tokenId, uri, flavour);
     }
@@ -132,6 +145,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @param _ticketMintCloseTime this is the timestamp the ticket mint should be closed
      */
     function setTicketMintCloseTime(uint40 _ticketMintCloseTime) public onlyOwner {
+        require(_ticketMintCloseTime < eventTime, "Ticket: Invalid mint close time");
         ticketMintCloseTime = _ticketMintCloseTime;
 
         emit TicketMintCloseTimeChanged(_ticketMintCloseTime);
@@ -143,6 +157,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @param _eventTime this is the time the event would be holding
      */
     function setEventTime(uint40 _eventTime) public onlyOwner {
+        require(_eventTime > ticketMintCloseTime, "Ticket: Invalid event time");
         eventTime = _eventTime;
 
         emit EventTimeChanged(_eventTime);

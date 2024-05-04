@@ -7,7 +7,9 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 struct TicketData {
+    // this is the address of the NFT ticket contract
     address ticket;
+    // this is the address of the noir verifier contract
     address verifier;
 }
 
@@ -27,7 +29,7 @@ contract TicketFactory is Ownable {
     // ==============================
     // EVENTS
     // ==============================
-    event TicketCreated(address indexed ticketAddress, uint256 tokenId, string symbol);
+    event TicketCreated(address indexed ticketAddress, uint256 eventId, string symbol);
     event VerifierContractSet(address indexed ticketAddress, address verifier);
 
 
@@ -50,30 +52,30 @@ contract TicketFactory is Ownable {
         IERC20 _paymentToken,
         uint40 _eventTime,
         uint40 _ticketMintCloseTime,
-        uint256 _ticketPrice
+        uint256[] memory _ticketPrice
     ) external returns (address) {
-        uint256 tokenId = ticketCount;
+        uint256 eventId = ticketCount;
         Ticket ticket = new Ticket(
             owner, name, symbol, trustedForwarder, _paymentToken, _eventTime, _ticketMintCloseTime, _ticketPrice
         );
-        tickets[tokenId].ticket = address(ticket);
+        tickets[eventId].ticket = address(ticket);
         ticketCount += 1;
         
-        emit TicketCreated(address(ticket), tokenId, symbol);
+        emit TicketCreated(address(ticket), eventId, symbol);
         return address(ticket);
     }
 
     /**
      * @notice function is used to set the verifier contract for a ticket
-     * @param ticketId this is the ID of the ticket
+     * @param eventId this is the ID of the ticket
      * @param verifier this is the address of the verifier contract
      */
-    function setVerificationContract(uint256 ticketId, address verifier) external onlyOwner {
-        address ticketOwner = Ownable(tickets[ticketId].ticket).owner();
+    function setVerificationContract(uint256 eventId, address verifier) external {
+        address ticketOwner = Ownable(tickets[eventId].ticket).owner();
         require(ticketOwner == msg.sender, "TicketFactory: caller is not the ticket owner");
-        tickets[ticketId].verifier = verifier;
+        tickets[eventId].verifier = verifier;
 
-        emit VerifierContractSet(tickets[ticketId].ticket, verifier);
+        emit VerifierContractSet(tickets[eventId].ticket, verifier);
     }
 
     /**
