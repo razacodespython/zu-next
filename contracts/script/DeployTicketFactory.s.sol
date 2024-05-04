@@ -16,6 +16,12 @@ contract DeployFactoryScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         TicketFactory ticketFactory = new TicketFactory(owner, address(0));
+        uint256[] memory ticketFlavourPrices = new uint256[](3);
+        ticketFlavourPrices[0] = 1000000000000000000;
+        ticketFlavourPrices[1] = 2000000000000000000;
+        ticketFlavourPrices[2] = 3000000000000000000;
+
+        Ticket ticket = new Ticket(address(1), "name", "symbol", address(0), address(0), 50, 25, ticketFlavourPrices);
 
         vm.stopBroadcast();
     }

@@ -49,7 +49,7 @@ contract TicketFactory is Ownable {
         address owner,
         string memory name,
         string memory symbol,
-        IERC20 _paymentToken,
+        address _paymentToken,
         uint40 _eventTime,
         uint40 _ticketMintCloseTime,
         uint256[] memory _ticketPrice

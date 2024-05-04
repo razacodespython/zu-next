@@ -66,12 +66,12 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         string memory name,
         string memory symbol,
         address trustedForwarder,
-        IERC20 _paymentToken,
+        address _paymentToken,
         uint40 _eventTime,
         uint40 _ticketMintCloseTime,
         uint256[] memory _ticketPrice
     ) ERC721(name, symbol) Ownable(eventAdmin) ERC2771Context(trustedForwarder) {
-        paymentToken = _paymentToken;
+        paymentToken = IERC20(_paymentToken);
         eventTime = _eventTime;
 
         // mint close time should be less than event time
