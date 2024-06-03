@@ -1,16 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Ticket} from "./Ticket.sol";
+import {TicketWithClass} from "./TicketWithClass.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
 struct TicketData {
-    // this is the address of the NFT ticket contract
-    address ticket;
-    // this is the address of the noir verifier contract
+    // this is the address of all the ticket classes
+    address[] ticketClasses;
+    // this is that address of the verifier contract
     address verifier;
+    // this is the addressof the owner
+    address owner;
+
 }
 
 contract TicketFactory is Ownable {
@@ -29,8 +32,8 @@ contract TicketFactory is Ownable {
     // ==============================
     // EVENTS
     // ==============================
-    event TicketCreated(address indexed ticketAddress, uint256 eventId, string symbol);
-    event VerifierContractSet(address indexed ticketAddress, address verifier);
+    event TicketCreated(uint256 indexed eventId, string symbol);
+    event VerifierContractSet(uint256 indexed ticket, address verifier);
 
 
 
@@ -53,16 +56,25 @@ contract TicketFactory is Ownable {
         uint40 _eventTime,
         uint40 _ticketMintCloseTime,
         uint256[] memory _ticketPrice
-    ) external returns (address) {
+    ) external returns (address[] memory) {
         uint256 eventId = ticketCount;
-        Ticket ticket = new Ticket(
-            owner, name, symbol, trustedForwarder, _paymentToken, _eventTime, _ticketMintCloseTime, _ticketPrice
-        );
-        tickets[eventId].ticket = address(ticket);
-        ticketCount += 1;
+
+        for (uint256 i = 0; i < _ticketPrice.length; i++) {
+            require(_ticketPrice[i] > 0, "TicketFactory: ticket price must be greater than 0");
+
+            TicketWithClass ticket = new TicketWithClass(
+                owner, name, symbol, trustedForwarder, _paymentToken, _eventTime, _ticketMintCloseTime, _ticketPrice[i]
+            );
+
+            tickets[eventId].ticketClasses.push(address(ticket));
+        }
         
-        emit TicketCreated(address(ticket), eventId, symbol);
-        return address(ticket);
+        ticketCount += 1;
+        tickets[eventId].owner = owner;
+        
+        emit TicketCreated(eventId, symbol);
+        
+        return tickets[eventId].ticketClasses;
     }
 
     /**
@@ -71,11 +83,11 @@ contract TicketFactory is Ownable {
      * @param verifier this is the address of the verifier contract
      */
     function setVerificationContract(uint256 eventId, address verifier) external {
-        address ticketOwner = Ownable(tickets[eventId].ticket).owner();
+        address ticketOwner = tickets[eventId].owner;
         require(ticketOwner == msg.sender, "TicketFactory: caller is not the ticket owner");
         tickets[eventId].verifier = verifier;
 
-        emit VerifierContractSet(tickets[eventId].ticket, verifier);
+        emit VerifierContractSet(eventId, verifier);
     }
 
     /**
