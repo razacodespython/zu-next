@@ -9,14 +9,6 @@ import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 
 
-enum TicketFlavour {
-    One,
-    Two,
-    Three,
-    Four,
-    Five,
-    Six
-}
 
 contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     // ==============================
@@ -32,23 +24,24 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     mapping(uint256 => bool) public usedTickets;
     // this is the state of the ticket minting
     bool public forceClosed;
-    // Ticket flavour price [this is the price in wie the ticket would be going for]
-    mapping(TicketFlavour => uint256) public ticketFlavourPrice;
     // Total number of tickets minted
     uint256 public totalTicketsMinted;
-    /// Ticket flavour count
-    uint256 public ticketFlavourCount;
+    // This is the price for this ticket class 
+    uint256 public ticketPrice;
+
+
 
 
     // ==============================
     // EVENTS
     // ==============================
-    event TicketMinted(address indexed to, uint256 tokenId, string uri, TicketFlavour flavour);
-    event TicketPriceChanged(uint256 newPrice, TicketFlavour flavour);
+    event TicketMinted(address indexed to, uint256 tokenId, string uri);
+    event TicketPriceChanged(uint256 newPrice);
     event TicketMintCloseTimeChanged(uint40 newTime);
     event EventTimeChanged(uint40 newTime);
     event TicketSalesForceClosed(bool status);
     event Withdraw(address recipent);
+    
 
     /**
      *
@@ -69,7 +62,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         address _paymentToken,
         uint40 _eventTime,
         uint40 _ticketMintCloseTime,
-        uint256[] memory _ticketPrice
+        uint256 _ticketPrice
     ) ERC721(name, symbol) Ownable(eventAdmin) ERC2771Context(trustedForwarder) {
         paymentToken = IERC20(_paymentToken);
         eventTime = _eventTime;
@@ -77,15 +70,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         // mint close time should be less than event time
         require(_ticketMintCloseTime < _eventTime, "Ticket: Invalid mint close time");
         ticketMintCloseTime = _ticketMintCloseTime;
-
-        // ensure the length of the ticket price is equal to the length of the TicketFlavour enum
-        require(_ticketPrice.length <= 6, "Ticket: Invalid ticket price length");
-        
-        for (uint256 i = 0; i < _ticketPrice.length; i++) {
-            ticketFlavourPrice[TicketFlavour(i)] = _ticketPrice[i];
-        }
-
-        ticketFlavourCount = _ticketPrice.length;
+    
+        ticketPrice = _ticketPrice;
     }
 
     /**
@@ -95,15 +81,16 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @param tokenId this is the token ID to be minted
      * @param uri this is the Metadata URL
      */
-    function purchaseTicket(address to, uint256 tokenId, string memory uri, address payer, TicketFlavour flavour) public {
+    function purchaseTicket(address to, uint256 tokenId, string memory uri, address payer) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
-        handlePayment(payer, flavour);
+        handlePayment(payer);
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
         totalTicketsMinted += 1;
 
-        emit TicketMinted(to, tokenId, uri, flavour);
+
+        emit TicketMinted(to, tokenId, uri);
     }
 
     /**
@@ -133,10 +120,10 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @notice this function is used to set the price this ticket can be purchased at
      * @param _ticketPrice this is the price of the ticket
      */
-    function setTicketPrice(uint256 _ticketPrice, TicketFlavour flavour) public onlyOwner {
-        ticketFlavourPrice[flavour] = _ticketPrice;
+    function setTicketPrice(uint256 _ticketPrice) public onlyOwner {
+        ticketPrice = _ticketPrice;
 
-        emit TicketPriceChanged(_ticketPrice, flavour);
+        emit TicketPriceChanged(_ticketPrice);
     }
 
     /**
@@ -185,6 +172,19 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         emit Withdraw(recipent);
     }
 
+    /**
+     *
+     * @notice this function is used to send generic token from this contract else else-where
+     * @param recipent this is the address the balance would be sent to
+     * @param token this is the address of the token to be sent
+     * @param amount this is the amount of token to be sent
+     */
+    function withdrawGeneric(address recipent, address token, uint256 amount) public onlyOwner {
+        IERC20(token).transfer(recipent, amount);
+
+        emit Withdraw(recipent);
+    }
+
     // =============================
     // INTERNAL FUNCTIONs
     // =============================
@@ -205,7 +205,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @dev this function is used to debit ERC20 token from a `payer`, the amount debitted is the current ticket price
      * @param payer this is the address paying for ticket
      */
-    function handlePayment(address payer, TicketFlavour flavour) internal {
-        paymentToken.transferFrom(payer, address(this), ticketFlavourPrice[flavour]);
+    function handlePayment(address payer) internal {
+        paymentToken.transferFrom(payer, address(this), ticketPrice);
     }
 }

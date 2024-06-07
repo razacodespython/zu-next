@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
 import {TicketFactory} from "../src/TicketFactory.sol";
+import {TicketWithClass} from "../src/TicketWithClass.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 
@@ -16,6 +17,9 @@ contract DeployFactoryScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         TicketFactory ticketFactory = new TicketFactory(owner, address(0));
+        TicketWithClass ticketWithClass = new TicketWithClass(owner, "TicketWithClass", "TWC", address(0), address(0), 2, 0, 0);
+
+
 
         vm.stopBroadcast();
     }

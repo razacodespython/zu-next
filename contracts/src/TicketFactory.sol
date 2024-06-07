@@ -1,80 +1,121 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {TicketWithClass} from "./TicketWithClass.sol";
+import {Ticket} from "./Ticket.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 
-struct TicketData {
+
+struct Event {
     // this is the address of all the ticket classes
-    address[] ticketClasses;
+    address[] tickets;
     // this is that address of the verifier contract
-    address verifier;
+    address[] verifier;
     // this is the addressof the owner
     address owner;
-
+    // this is the name of the event
+    string name;
+    // this is the symbol of the event
+    string symbol;
+    // this is the time the event would be holding
+    uint40 eventTime;
 }
 
-contract TicketFactory is Ownable {
+contract TicketFactory is Ownable, ERC2771Context {
     // ==============================
     // STATE VARIABLES
     // ==============================
     // this the trusted forwarder address of the sponspored tx component
     address public trustedForwarder;
-    // this mapping stores
-    mapping(uint256 => TicketData) public tickets;
-    // ticket count 
-    uint256 public ticketCount;
+    // this mapping stores this event_id to the event struct
+    mapping(uint256 => Event) public events;
+    // event count 
+    uint256 public eventCount;
 
 
 
     // ==============================
     // EVENTS
     // ==============================
+    event EventCreated(uint256 indexed eventId, address indexed owner, string symbol);
     event TicketCreated(uint256 indexed eventId, string symbol);
-    event VerifierContractSet(uint256 indexed ticket, address verifier);
+    event VerifierContractSet(uint256 indexed ticket, address[] verifier);
 
 
 
-    constructor(address factoryOwner, address _trustedForwarder) Ownable(factoryOwner) {
-        trustedForwarder = _trustedForwarder;
+
+    constructor(address factoryOwner, address _trustedForwarder) Ownable(factoryOwner) ERC2771Context(_trustedForwarder) {}
+
+
+
+    /**
+     * @notice function is used to create a new event
+     * @param owner this is the address of the event owner
+     * @param name this is the name of the event
+     * @param symbol this is the symbol of the event
+     * @param _eventTime this is the time the event would be holding
+     */
+    function createEvent(
+        address owner,
+        string memory name,
+        string memory symbol,
+        uint40 _eventTime
+    ) external returns (uint256) {
+        uint256 eventId = eventCount;
+        Event memory newEvent = Event({
+            tickets: new address[](0),
+            verifier: new address[](0),
+            owner: owner,
+            name: name,
+            symbol: symbol,
+            eventTime: _eventTime
+        });
+
+        events[eventId] = newEvent;
+        eventCount += 1;
+
+        emit EventCreated(eventId, owner, symbol);
+
+        return eventId;
     }
 
 
     /**
      * @notice function is used to create a new ticket contract
-     * @param owner this is the address of the ticket owner
-     * @param name this is the name of the ticket
-     * @param symbol this is the symbol of the ticket
+     * @param eventId this is the ID of the event
+     * @param _paymentToken this is the address of the token used to pay for the ticket
+     * @param _eventTime this is the time stamp for the event
+     * @param _ticketMintCloseTime this is the time the ticket mint would be closed
+     * @param _ticketPrice this is the price of the ticket
      */
     function createNewTicket(
-        address owner,
-        string memory name,
-        string memory symbol,
+        uint256 eventId,
         address _paymentToken,
         uint40 _eventTime,
         uint40 _ticketMintCloseTime,
-        uint256[] memory _ticketPrice
-    ) external returns (address[] memory) {
-        uint256 eventId = ticketCount;
+        uint256 _ticketPrice
+    ) external returns (address) {
+        require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
+        require(_ticketMintCloseTime < _eventTime, "TicketFactory: Invalid mint close time");
 
-        for (uint256 i = 0; i < _ticketPrice.length; i++) {
-            require(_ticketPrice[i] > 0, "TicketFactory: ticket price must be greater than 0");
+        Ticket newTicket = new Ticket(
+            events[eventId].owner,
+            events[eventId].name,
+            events[eventId].symbol,
+            trustedForwarder,
+            _paymentToken,
+            _eventTime,
+            _ticketMintCloseTime,
+            _ticketPrice
+        );
 
-            TicketWithClass ticket = new TicketWithClass(
-                owner, name, symbol, trustedForwarder, _paymentToken, _eventTime, _ticketMintCloseTime, _ticketPrice[i]
-            );
+        events[eventId].tickets.push(address(newTicket));
 
-            tickets[eventId].ticketClasses.push(address(ticket));
-        }
-        
-        ticketCount += 1;
-        tickets[eventId].owner = owner;
-        
-        emit TicketCreated(eventId, symbol);
-        
-        return tickets[eventId].ticketClasses;
+        emit TicketCreated(eventId, events[eventId].symbol);
+
+        return address(newTicket);
     }
 
     /**
@@ -82,10 +123,9 @@ contract TicketFactory is Ownable {
      * @param eventId this is the ID of the ticket
      * @param verifier this is the address of the verifier contract
      */
-    function setVerificationContract(uint256 eventId, address verifier) external {
-        address ticketOwner = tickets[eventId].owner;
-        require(ticketOwner == msg.sender, "TicketFactory: caller is not the ticket owner");
-        tickets[eventId].verifier = verifier;
+    function setVerificationContract(uint256 eventId, address[] memory verifier) external {
+        require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the ticket owner");
+        events[eventId].verifier = verifier;
 
         emit VerifierContractSet(eventId, verifier);
     }
@@ -96,6 +136,40 @@ contract TicketFactory is Ownable {
      */
     function setTrustedForwarder(address _trustedForwarder) external onlyOwner {
         trustedForwarder = _trustedForwarder;
+    }
+
+
+    /**
+     * @notice function is used to get the block number
+     */
+    function getBlocknumber() public view returns (uint256) {
+        return block.number;
+    }
+
+    /**
+     * @notice function is used by the event admin to change the owner of the event
+     * @param eventId this is the ID of the event
+     * @param newOwner this is the address of the new owner
+     */
+    function changeEventOwner(uint256 eventId, address newOwner) public {
+        require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
+        events[eventId].owner = newOwner;
+    }
+
+
+    // =============================
+    // INTERNAL FUNCTIONs
+    // =============================
+    function _msgSender() internal view virtual override(Context, ERC2771Context) returns (address) {
+        return ERC2771Context._msgSender();
+    }
+
+    function _msgData() internal view virtual override(Context, ERC2771Context) returns (bytes calldata) {
+        return ERC2771Context._msgData();
+    }
+
+    function _contextSuffixLength() internal view virtual override(Context, ERC2771Context) returns (uint256) {
+        return 20;
     }
 }
 
