@@ -28,7 +28,7 @@ contract TicketFactory is Ownable, ERC2771Context {
     // STATE VARIABLES
     // ==============================
     // this the trusted forwarder address of the sponspored tx component
-    address public trustedForwarder;
+    address public ticketTrustedForwarder;
     // this mapping stores this event_id to the event struct
     mapping(uint256 => Event) public events;
     // event count 
@@ -46,7 +46,9 @@ contract TicketFactory is Ownable, ERC2771Context {
 
 
 
-    constructor(address factoryOwner, address _trustedForwarder) Ownable(factoryOwner) ERC2771Context(_trustedForwarder) {}
+    constructor(address factoryOwner, address _trustedForwarder, address _ticketTrustedForwarder) Ownable(factoryOwner) ERC2771Context(_trustedForwarder) {
+        ticketTrustedForwarder = _ticketTrustedForwarder;
+    }
 
 
 
@@ -104,7 +106,7 @@ contract TicketFactory is Ownable, ERC2771Context {
             events[eventId].owner,
             events[eventId].name,
             events[eventId].symbol,
-            trustedForwarder,
+            ticketTrustedForwarder,
             _paymentToken,
             _eventTime,
             _ticketMintCloseTime,
@@ -132,10 +134,10 @@ contract TicketFactory is Ownable, ERC2771Context {
 
     /**
      * @notice function sets the trusted forwarder address
-     * @param _trustedForwarder address of the new trusted forwarder
+     * @param _ticketTrustedForwarder address of the new trusted forwarder
      */
-    function setTrustedForwarder(address _trustedForwarder) external onlyOwner {
-        trustedForwarder = _trustedForwarder;
+    function setTrustedForwarder(address _ticketTrustedForwarder) external onlyOwner {
+        ticketTrustedForwarder = _ticketTrustedForwarder;
     }
 
 
