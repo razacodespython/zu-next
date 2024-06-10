@@ -88,19 +88,17 @@ contract TicketFactory is Ownable, ERC2771Context {
      * @notice function is used to create a new ticket contract
      * @param eventId this is the ID of the event
      * @param _paymentToken this is the address of the token used to pay for the ticket
-     * @param _eventTime this is the time stamp for the event
      * @param _ticketMintCloseTime this is the time the ticket mint would be closed
      * @param _ticketPrice this is the price of the ticket
      */
     function createNewTicket(
         uint256 eventId,
         address _paymentToken,
-        uint40 _eventTime,
         uint40 _ticketMintCloseTime,
         uint256 _ticketPrice
     ) external returns (address) {
         require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
-        require(_ticketMintCloseTime < _eventTime, "TicketFactory: Invalid mint close time");
+        require(_ticketMintCloseTime < events[eventId].eventTime, "TicketFactory: Invalid mint close time");
 
         Ticket newTicket = new Ticket(
             events[eventId].owner,
@@ -108,7 +106,7 @@ contract TicketFactory is Ownable, ERC2771Context {
             events[eventId].symbol,
             ticketTrustedForwarder,
             _paymentToken,
-            _eventTime,
+            events[eventId].eventTime,
             _ticketMintCloseTime,
             _ticketPrice
         );
@@ -156,6 +154,22 @@ contract TicketFactory is Ownable, ERC2771Context {
     function changeEventOwner(uint256 eventId, address newOwner) public {
         require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
         events[eventId].owner = newOwner;
+    }
+
+    /**
+     * @notice function is used to get the tickets for an event
+     * @param eventId this is the ID of the event
+     */
+    function getTickets(uint256 eventId) public view returns (address[] memory) {
+        return events[eventId].tickets;
+    }
+
+    /**
+     * @notice function is used to get the verifier for a ticket
+     * @param eventId this is the ID of the event
+     */
+    function getVerifier(uint256 eventId) public view returns (address[] memory) {
+        return events[eventId].verifier;
     }
 
 
