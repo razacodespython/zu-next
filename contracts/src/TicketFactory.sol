@@ -93,22 +93,25 @@ contract TicketFactory is Ownable, ERC2771Context {
      */
     function createNewTicket(
         uint256 eventId,
+        string memory _ticketName,
         address _paymentToken,
         uint40 _ticketMintCloseTime,
-        uint256 _ticketPrice
+        uint256 _ticketPrice,
+        uint256 _ticketCap
     ) external returns (address) {
         require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
         require(_ticketMintCloseTime < events[eventId].eventTime, "TicketFactory: Invalid mint close time");
 
         Ticket newTicket = new Ticket(
             events[eventId].owner,
-            events[eventId].name,
+            _ticketName,
             events[eventId].symbol,
             ticketTrustedForwarder,
             _paymentToken,
             events[eventId].eventTime,
             _ticketMintCloseTime,
-            _ticketPrice
+            _ticketPrice,
+            _ticketCap
         );
 
         events[eventId].tickets.push(address(newTicket));

@@ -28,6 +28,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     uint256 public totalTicketsMinted;
     // This is the price for this ticket class 
     uint256 public ticketPrice;
+    // this is the ticket cap 
+    uint256 public ticketCap;
 
 
 
@@ -62,7 +64,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         address _paymentToken,
         uint40 _eventTime,
         uint40 _ticketMintCloseTime,
-        uint256 _ticketPrice
+        uint256 _ticketPrice,
+        uint256 _ticketCap
     ) ERC721(name, symbol) Ownable(eventAdmin) ERC2771Context(trustedForwarder) {
         paymentToken = IERC20(_paymentToken);
         eventTime = _eventTime;
@@ -72,6 +75,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         ticketMintCloseTime = _ticketMintCloseTime;
     
         ticketPrice = _ticketPrice;
+        ticketCap = _ticketCap;
     }
 
     /**
@@ -84,6 +88,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     function purchaseTicket(address to, uint256 tokenId, string memory uri, address payer) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
+        require(totalTicketsMinted < ticketCap, "Ticket: Ticket cap reached");
         handlePayment(payer);
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
@@ -91,6 +96,20 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
 
 
         emit TicketMinted(to, tokenId, uri);
+    }
+
+    /**
+     *
+     * @notice this function is used to mint ticket by an admin
+     * @dev this function evades the `forceClosed` and `ticketMintCloseTime` checks
+     * @param to this is the address this ticket would be minted to
+     * @param tokenId this is the token ID to be minted
+     * @param uri this is the Metadata URL
+     */
+    function adminMint(address to, uint256 tokenId, string memory uri) public onlyOwner {
+        _safeMint(to, tokenId);
+        _setTokenURI(tokenId, uri);
+        totalTicketsMinted += 1;
     }
 
     /**
@@ -183,6 +202,15 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         IERC20(token).transfer(recipent, amount);
 
         emit Withdraw(recipent);
+    }
+    
+    /**
+     *
+     * @notice this function is used to update the ticket cap
+     * @param _ticketCap this is the new ticket cap
+     */
+    function updateTicketCap(uint256 _ticketCap) public onlyOwner {
+        ticketCap = _ticketCap;
     }
 
     // =============================

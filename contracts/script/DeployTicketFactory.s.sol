@@ -17,7 +17,7 @@ contract DeployFactoryScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         TicketFactory ticketFactory = new TicketFactory(owner, address(0), address(0));
-        Ticket ticket = new Ticket(owner, "TicketWithClass", "TWC", address(0), address(0), 2, 0, 0);
+        Ticket ticket = new Ticket(owner, "TicketWithClass", "TWC", address(0), address(0), 2, 0, 0, 100);
 
 
 
