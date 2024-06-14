@@ -7,9 +7,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-
-
-
 contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     // ==============================
     // STATE VARIABLES
@@ -26,13 +23,10 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     bool public forceClosed;
     // Total number of tickets minted
     uint256 public totalTicketsMinted;
-    // This is the price for this ticket class 
+    // This is the price for this ticket class
     uint256 public ticketPrice;
-    // this is the ticket cap 
+    // this is the ticket cap
     uint256 public ticketCap;
-
-
-
 
     // ==============================
     // EVENTS
@@ -43,7 +37,6 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     event EventTimeChanged(uint40 newTime);
     event TicketSalesForceClosed(bool status);
     event Withdraw(address recipent);
-    
 
     /**
      *
@@ -73,7 +66,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         // mint close time should be less than event time
         require(_ticketMintCloseTime < _eventTime, "Ticket: Invalid mint close time");
         ticketMintCloseTime = _ticketMintCloseTime;
-    
+
         ticketPrice = _ticketPrice;
         ticketCap = _ticketCap;
     }
@@ -93,7 +86,6 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
         totalTicketsMinted += 1;
-
 
         emit TicketMinted(to, tokenId, uri);
     }
@@ -203,7 +195,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
 
         emit Withdraw(recipent);
     }
-    
+
     /**
      *
      * @notice this function is used to update the ticket cap

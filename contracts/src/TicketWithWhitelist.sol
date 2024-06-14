@@ -7,9 +7,6 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-
-
-
 contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     // ==============================
     // STATE VARIABLES
@@ -26,15 +23,12 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
     bool public forceClosed;
     // Total number of tickets minted
     uint256 public totalTicketsMinted;
-    // This is the price for this ticket class 
+    // This is the price for this ticket class
     uint256 public ticketPrice;
-    // this is the ticket cap 
+    // this is the ticket cap
     uint256 public ticketCap;
     // for whitelist
     mapping(address => bool) public whitelist;
-
-
-
 
     // ==============================
     // EVENTS
@@ -45,7 +39,6 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
     event EventTimeChanged(uint40 newTime);
     event TicketSalesForceClosed(bool status);
     event Withdraw(address recipent);
-    
 
     /**
      *
@@ -77,7 +70,7 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         require(_ticketMintCloseTime < _eventTime, "Ticket: Invalid mint close time");
         ticketMintCloseTime = _ticketMintCloseTime;
         appendToWhitelist_internal(_whitelist);
-    
+
         ticketPrice = _ticketPrice;
         ticketCap = _ticketCap;
     }
@@ -98,7 +91,6 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
         totalTicketsMinted += 1;
-
 
         emit TicketMinted(to, tokenId, uri);
     }
@@ -208,7 +200,7 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
 
         emit Withdraw(recipent);
     }
-    
+
     /**
      *
      * @notice this function is used to update the ticket cap
@@ -226,7 +218,6 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
     function appendToWhitelist(address[] memory _addresses) public onlyOwner {
         appendToWhitelist_internal(_addresses);
     }
-
 
     // =============================
     // INTERNAL FUNCTIONs
@@ -253,11 +244,11 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
     }
 
     /**
-     * 
+     *
      * @param _addresses this is the list of addresses to be added to the whitelist
      */
     function appendToWhitelist_internal(address[] memory _addresses) internal {
-        for (uint i = 0; i < _addresses.length; i++) {
+        for (uint256 i = 0; i < _addresses.length; i++) {
             whitelist[_addresses[i]] = true;
         }
     }

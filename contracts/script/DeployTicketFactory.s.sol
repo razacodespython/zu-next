@@ -7,7 +7,6 @@ import {Ticket} from "../src/Ticket.sol";
 import {TicketWithWhitelist} from "../src/TicketWithWhitelist.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
-
 contract DeployFactoryScript is Script {
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
     address owner = vm.addr(deployerPrivateKey);
@@ -21,10 +20,9 @@ contract DeployFactoryScript is Script {
         Ticket ticket = new Ticket(owner, "TicketWithClass", "TWC", address(0), address(0), 2, 0, 0, 100);
         address[] memory whitelist = new address[](1);
         whitelist[0] = address(0);
-        TicketWithWhitelist ticketWithWhitelist = new TicketWithWhitelist(owner, "TicketWithWhitelist", "TWW", address(0), address(0), 2, 0, 0, 100, whitelist);
-        
-
-
+        TicketWithWhitelist ticketWithWhitelist = new TicketWithWhitelist(
+            owner, "TicketWithWhitelist", "TWW", address(0), address(0), 2, 0, 0, 100, whitelist
+        );
 
         vm.stopBroadcast();
     }

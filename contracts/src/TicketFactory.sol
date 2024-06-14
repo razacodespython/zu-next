@@ -7,8 +7,6 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
-
-
 struct Event {
     // this is the address of all the ticket classes
     address[] tickets;
@@ -32,10 +30,8 @@ contract TicketFactory is Ownable, ERC2771Context {
     address public ticketTrustedForwarder;
     // this mapping stores this event_id to the event struct
     mapping(uint256 => Event) public events;
-    // event count 
+    // event count
     uint256 public eventCount;
-
-
 
     // ==============================
     // EVENTS
@@ -44,14 +40,12 @@ contract TicketFactory is Ownable, ERC2771Context {
     event TicketCreated(uint256 indexed eventId, string symbol);
     event VerifierContractSet(uint256 indexed ticket, address[] verifier);
 
-
-
-
-    constructor(address factoryOwner, address _trustedForwarder, address _ticketTrustedForwarder) Ownable(factoryOwner) ERC2771Context(_trustedForwarder) {
+    constructor(address factoryOwner, address _trustedForwarder, address _ticketTrustedForwarder)
+        Ownable(factoryOwner)
+        ERC2771Context(_trustedForwarder)
+    {
         ticketTrustedForwarder = _ticketTrustedForwarder;
     }
-
-
 
     /**
      * @notice function is used to create a new event
@@ -60,12 +54,10 @@ contract TicketFactory is Ownable, ERC2771Context {
      * @param symbol this is the symbol of the event
      * @param _eventTime this is the time the event would be holding
      */
-    function createEvent(
-        address owner,
-        string memory name,
-        string memory symbol,
-        uint40 _eventTime
-    ) external returns (uint256) {
+    function createEvent(address owner, string memory name, string memory symbol, uint40 _eventTime)
+        external
+        returns (uint256)
+    {
         uint256 eventId = eventCount;
         Event memory newEvent = Event({
             tickets: new address[](0),
@@ -84,53 +76,15 @@ contract TicketFactory is Ownable, ERC2771Context {
         return eventId;
     }
 
-
     /**
      * @notice function is used to create a new ticket contract
      * @param eventId this is the ID of the event
      * @param _paymentToken this is the address of the token used to pay for the ticket
      * @param _ticketMintCloseTime this is the time the ticket mint would be closed
      * @param _ticketPrice this is the price of the ticket
-     */
-    function createNewTicket(
-        uint256 eventId,
-        string memory _ticketName,
-        address _paymentToken,
-        uint40 _ticketMintCloseTime,
-        uint256 _ticketPrice,
-        uint256 _ticketCap
-    ) external returns (address) {
-        require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
-        require(_ticketMintCloseTime < events[eventId].eventTime, "TicketFactory: Invalid mint close time");
-
-        Ticket newTicket = new Ticket(
-            events[eventId].owner,
-            _ticketName,
-            events[eventId].symbol,
-            ticketTrustedForwarder,
-            _paymentToken,
-            events[eventId].eventTime,
-            _ticketMintCloseTime,
-            _ticketPrice,
-            _ticketCap
-        );
-
-        events[eventId].tickets.push(address(newTicket));
-
-        emit TicketCreated(eventId, events[eventId].symbol);
-
-        return address(newTicket);
-    }
-
-    /**
-     * @notice function is used to create a new ticket contract with whitelist
-     * @param eventId this is the ID of the event
-     * @param _paymentToken this is the address of the token used to pay for the ticket
-     * @param _ticketMintCloseTime this is the time the ticket mint would be closed
-     * @param _ticketPrice this is the price of the ticket
      * @param _whitelist this is the list of addresses that can mint the ticket
      */
-    function createNewTicketWithWhitelist(
+    function createNewTicket(
         uint256 eventId,
         string memory _ticketName,
         address _paymentToken,
@@ -142,23 +96,41 @@ contract TicketFactory is Ownable, ERC2771Context {
         require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
         require(_ticketMintCloseTime < events[eventId].eventTime, "TicketFactory: Invalid mint close time");
 
-        TicketWithWhitelist newTicket = new TicketWithWhitelist(
-            events[eventId].owner,
-            _ticketName,
-            events[eventId].symbol,
-            ticketTrustedForwarder,
-            _paymentToken,
-            events[eventId].eventTime,
-            _ticketMintCloseTime,
-            _ticketPrice,
-            _ticketCap,
-            _whitelist
-        );
+        address newTicket;
+
+        if (_whitelist.length > 0) {
+            newTicket = address(
+                new TicketWithWhitelist(
+                    events[eventId].owner,
+                    _ticketName,
+                    events[eventId].symbol,
+                    ticketTrustedForwarder,
+                    _paymentToken,
+                    events[eventId].eventTime,
+                    _ticketMintCloseTime,
+                    _ticketPrice,
+                    _ticketCap,
+                    _whitelist
+                )
+            );
+        } else {
+            newTicket = address(
+                new Ticket(
+                    events[eventId].owner,
+                    _ticketName,
+                    events[eventId].symbol,
+                    ticketTrustedForwarder,
+                    _paymentToken,
+                    events[eventId].eventTime,
+                    _ticketMintCloseTime,
+                    _ticketPrice,
+                    _ticketCap
+                )
+            );
+        }
 
         events[eventId].tickets.push(address(newTicket));
-
         emit TicketCreated(eventId, events[eventId].symbol);
-
         return address(newTicket);
     }
 
@@ -180,14 +152,6 @@ contract TicketFactory is Ownable, ERC2771Context {
      */
     function setTrustedForwarder(address _ticketTrustedForwarder) external onlyOwner {
         ticketTrustedForwarder = _ticketTrustedForwarder;
-    }
-
-
-    /**
-     * @notice function is used to get the block number
-     */
-    function getBlocknumber() public view returns (uint256) {
-        return block.number;
     }
 
     /**
@@ -216,7 +180,6 @@ contract TicketFactory is Ownable, ERC2771Context {
         return events[eventId].verifier;
     }
 
-
     // =============================
     // INTERNAL FUNCTIONs
     // =============================
@@ -232,7 +195,5 @@ contract TicketFactory is Ownable, ERC2771Context {
         return 20;
     }
 }
-
-
 
 // TESTNET DEPLOYMENT: 0x7a38630137f22de9c11fd67c997751b608899c81
