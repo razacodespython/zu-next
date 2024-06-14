@@ -10,7 +10,7 @@ import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
 
 
 
-contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
+contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     // ==============================
     // STATE VARIABLES
     // ==============================
@@ -93,6 +93,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
         require(totalTicketsMinted < ticketCap, "Ticket: Ticket cap reached");
+        require(whitelist[_msgSender()], "Ticket: Caller is not whitelisted");
         handlePayment(payer);
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
@@ -225,7 +226,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     function appendToWhitelist(address[] memory _addresses) public onlyOwner {
         appendToWhitelist_internal(_addresses);
     }
-    
+
 
     // =============================
     // INTERNAL FUNCTIONs

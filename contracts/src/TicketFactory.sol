@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {Ticket} from "./Ticket.sol";
+import {TicketWithWhitelist} from "./TicketWithWhitelist.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/metatx/ERC2771Context.sol";
@@ -112,6 +113,46 @@ contract TicketFactory is Ownable, ERC2771Context {
             _ticketMintCloseTime,
             _ticketPrice,
             _ticketCap
+        );
+
+        events[eventId].tickets.push(address(newTicket));
+
+        emit TicketCreated(eventId, events[eventId].symbol);
+
+        return address(newTicket);
+    }
+
+    /**
+     * @notice function is used to create a new ticket contract with whitelist
+     * @param eventId this is the ID of the event
+     * @param _paymentToken this is the address of the token used to pay for the ticket
+     * @param _ticketMintCloseTime this is the time the ticket mint would be closed
+     * @param _ticketPrice this is the price of the ticket
+     * @param _whitelist this is the list of addresses that can mint the ticket
+     */
+    function createNewTicketWithWhitelist(
+        uint256 eventId,
+        string memory _ticketName,
+        address _paymentToken,
+        uint40 _ticketMintCloseTime,
+        uint256 _ticketPrice,
+        uint256 _ticketCap,
+        address[] memory _whitelist
+    ) external returns (address) {
+        require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
+        require(_ticketMintCloseTime < events[eventId].eventTime, "TicketFactory: Invalid mint close time");
+
+        TicketWithWhitelist newTicket = new TicketWithWhitelist(
+            events[eventId].owner,
+            _ticketName,
+            events[eventId].symbol,
+            ticketTrustedForwarder,
+            _paymentToken,
+            events[eventId].eventTime,
+            _ticketMintCloseTime,
+            _ticketPrice,
+            _ticketCap,
+            _whitelist
         );
 
         events[eventId].tickets.push(address(newTicket));
