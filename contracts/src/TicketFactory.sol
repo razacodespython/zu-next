@@ -93,7 +93,7 @@ contract TicketFactory is Ownable, ERC2771Context {
         uint256 _ticketCap,
         address[] memory _whitelist
     ) external returns (address) {
-        require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
+        require(events[eventId].owner == _msgSender(), "TicketFactory: caller not owner");
         require(_ticketMintCloseTime < events[eventId].eventTime, "TicketFactory: Invalid mint close time");
 
         address newTicket;
@@ -140,7 +140,7 @@ contract TicketFactory is Ownable, ERC2771Context {
      * @param verifier this is the address of the verifier contract
      */
     function setVerificationContract(uint256 eventId, address[] memory verifier) external {
-        require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the ticket owner");
+        require(events[eventId].owner == _msgSender(), "TicketFactory: caller not owner");
         events[eventId].verifier = verifier;
 
         emit VerifierContractSet(eventId, verifier);
@@ -160,7 +160,7 @@ contract TicketFactory is Ownable, ERC2771Context {
      * @param newOwner this is the address of the new owner
      */
     function changeEventOwner(uint256 eventId, address newOwner) public {
-        require(events[eventId].owner == _msgSender(), "TicketFactory: caller is not the event owner");
+        require(events[eventId].owner == _msgSender(), "TicketFactory: caller not owner");
         events[eventId].owner = newOwner;
     }
 

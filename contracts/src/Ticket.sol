@@ -25,8 +25,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     uint256 public totalTicketsMinted;
     // This is the price for this ticket class
     uint256 public ticketPrice;
-    // this is the ticket cap
-    uint256 public ticketCap;
+
 
     // ==============================
     // EVENTS
@@ -68,7 +67,6 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         ticketMintCloseTime = _ticketMintCloseTime;
 
         ticketPrice = _ticketPrice;
-        ticketCap = _ticketCap;
     }
 
     /**
@@ -81,7 +79,6 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     function purchaseTicket(address to, uint256 tokenId, string memory uri, address payer) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
-        require(totalTicketsMinted < ticketCap, "Ticket: Ticket cap reached");
         handlePayment(payer);
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
@@ -102,16 +99,6 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         _safeMint(to, tokenId);
         _setTokenURI(tokenId, uri);
         totalTicketsMinted += 1;
-    }
-
-    /**
-     *
-     * @notice this function is used to check if a ticket has been used
-     * @param tokenId this is the tokenId to be checked
-     */
-    function useTicket(uint256 tokenId) public {
-        require(ownerOf(tokenId) == _msgSender(), "Ticket: caller is not the owner of the ticket");
-        usedTickets[tokenId] = true;
     }
 
     /**
@@ -194,15 +181,6 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         IERC20(token).transfer(recipent, amount);
 
         emit Withdraw(recipent);
-    }
-
-    /**
-     *
-     * @notice this function is used to update the ticket cap
-     * @param _ticketCap this is the new ticket cap
-     */
-    function updateTicketCap(uint256 _ticketCap) public onlyOwner {
-        ticketCap = _ticketCap;
     }
 
     // =============================
