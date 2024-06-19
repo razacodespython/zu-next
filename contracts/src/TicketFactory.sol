@@ -90,7 +90,7 @@ contract TicketFactory is Ownable, ERC2771Context {
         address _paymentToken,
         uint40 _ticketMintCloseTime,
         uint256 _ticketPrice,
-        uint256 _ticketCap,
+        bool withWithlist,
         address[] memory _whitelist
     ) external returns (address) {
         require(events[eventId].owner == _msgSender(), "TicketFactory: caller not owner");
@@ -98,7 +98,7 @@ contract TicketFactory is Ownable, ERC2771Context {
 
         address newTicket;
 
-        if (_whitelist.length > 0) {
+        if (withWithlist) {
             newTicket = address(
                 new TicketWithWhitelist(
                     events[eventId].owner,
@@ -109,7 +109,6 @@ contract TicketFactory is Ownable, ERC2771Context {
                     events[eventId].eventTime,
                     _ticketMintCloseTime,
                     _ticketPrice,
-                    _ticketCap,
                     _whitelist
                 )
             );
@@ -123,8 +122,7 @@ contract TicketFactory is Ownable, ERC2771Context {
                     _paymentToken,
                     events[eventId].eventTime,
                     _ticketMintCloseTime,
-                    _ticketPrice,
-                    _ticketCap
+                    _ticketPrice
                 )
             );
         }

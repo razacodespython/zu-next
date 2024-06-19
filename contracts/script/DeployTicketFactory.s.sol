@@ -17,11 +17,11 @@ contract DeployFactoryScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         TicketFactory ticketFactory = new TicketFactory(owner, address(0), address(0));
-        Ticket ticket = new Ticket(owner, "TicketWithClass", "TWC", address(0), address(0), 2, 0, 0, 100);
+        Ticket ticket = new Ticket(owner, "TicketWithClass", "TWC", address(0), address(0), 2, 0, 0);
         address[] memory whitelist = new address[](1);
         whitelist[0] = address(0);
         TicketWithWhitelist ticketWithWhitelist = new TicketWithWhitelist(
-            owner, "TicketWithWhitelist", "TWW", address(0), address(0), 2, 0, 0, 100, whitelist
+            owner, "TicketWithWhitelist", "TWW", address(0), address(0), 2, 0, 0, whitelist
         );
 
         vm.stopBroadcast();

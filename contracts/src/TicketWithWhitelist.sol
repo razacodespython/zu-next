@@ -59,7 +59,6 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         uint40 _eventTime,
         uint40 _ticketMintCloseTime,
         uint256 _ticketPrice,
-        uint256 _ticketCap,
         address[] memory _whitelist
     ) ERC721(name, symbol) Ownable(eventAdmin) ERC2771Context(trustedForwarder) {
         paymentToken = IERC20(_paymentToken);
