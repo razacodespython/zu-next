@@ -1,54 +1,27 @@
-## Foundry
+## Event Ticketing System
+---------------------------
+This is an event ticketing system built with decentralization in view.
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+**Project contains**
+1. `TicketFactory`
+2. `Ticket`
+3. `TicketWithWhitelist`
 
-Foundry consists of:
+##### TicketFactory
+This smart contract is used to develop `Ticket` or `TicketWithWhitelist`. This is to an extent the pillar event management system.
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+##### Ticket
+This smart contract represent and Event ticket, in this system, Event can be of different Classes. `Vip`, `Regular` and so on.
 
-## Documentation
+##### TicketWithWhitelist
+This smart contract simiar to `Ticket` represent an Event ticket, but however this one is `Whitelisted` and the white list is hanlded by the admim.
 
-https://book.getfoundry.sh/
 
-## Usage
 
-### Build
 
-```shell
-$ forge build
-```
-
-### Test
-
-```shell
-$ forge test
-```
-
-### Format
-
-```shell
-$ forge fmt
-```
-
-### Gas Snapshots
-
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+### Deployment
+```sh
+forge script script/DeployTicketFactory.s.sol:DeployFactoryScript --rpc-url $SCROLL_RPC_URL --broadcast -vvvv --ffi --verify
 ```
 
 ### Cast
