@@ -14,6 +14,9 @@
       "web3-core-helpers": "^1.10.3",
       "web3-eth": "^4.3.1",
       "web3-eth-contract": "^4.1.4",
-      "web3-utils": "^4.1.0"
+      "web3-utils": "^4.1.0",
+      "keccak256": "^1.0.6",
+      "lodash": "^4.17.21",
+      "merkletreejs": "^0.3.11"
     }
   }
