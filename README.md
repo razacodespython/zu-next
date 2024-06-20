@@ -42,15 +42,3 @@ Instead of using a database, we can opt to store data on arweave or filecoin, so
 Data to be stored:
 1. key value pair for QR code
 2. ...
-
-
-
-
-# Ticketing Contract and Factory
----------------------------------
-
-### Deployment
-
-```sh
-forge script script/DeployTicketFactory.s.sol:DeployFactoryScript --rpc-url $SCROLL_RPC_URL --broadcast -vvvv --ffi --verify
-```
