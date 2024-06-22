@@ -25,6 +25,8 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     uint256 public totalTicketsMinted;
     // This is the price for this ticket class
     uint256 public ticketPrice;
+    // this state varibable tracks the token Id
+    uint256 public tokenId;
 
 
     // ==============================
@@ -72,18 +74,18 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      *
      * @notice function ois used to mint ticket
      * @param to this is the address this ticket would be minted to
-     * @param tokenId this is the token ID to be minted
      * @param uri this is the Metadata URL
      */
-    function purchaseTicket(address to, uint256 tokenId, string memory uri, address payer) public {
+    function purchaseTicket(address to, string memory uri, address payer) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
+        uint256 tokenId_ = getTokenId();
         handlePayment(payer);
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+        _safeMint(to, tokenId_);
+        _setTokenURI(tokenId_, uri);
         totalTicketsMinted += 1;
 
-        emit TicketMinted(to, tokenId, uri);
+        emit TicketMinted(to, tokenId_, uri);
     }
 
     /**
@@ -91,21 +93,21 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @notice this function is used to mint ticket by an admin
      * @dev this function evades the `forceClosed` and `ticketMintCloseTime` checks
      * @param to this is the address this ticket would be minted to
-     * @param tokenId this is the token ID to be minted
      * @param uri this is the Metadata URL
      */
-    function adminMint(address to, uint256 tokenId, string memory uri) public onlyOwner {
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+    function adminMint(address to, string memory uri) public onlyOwner {
+        uint256 tokenId_ = getTokenId();
+        _safeMint(to, tokenId_);
+        _setTokenURI(tokenId_, uri);
         totalTicketsMinted += 1;
     }
 
     /**
      *
-     * @param tokenId this is the tokenId would metadata is being queryed
+     * @param _tokenId this is the tokenId would metadata is being queryed
      */
-    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        return super.tokenURI(tokenId);
+    function tokenURI(uint256 _tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+        return super.tokenURI(_tokenId);
     }
 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721URIStorage) returns (bool) {
@@ -195,6 +197,11 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
 
     function _contextSuffixLength() internal view virtual override(Context, ERC2771Context) returns (uint256) {
         return 20;
+    }
+
+    function getTokenId() internal returns(uint256 tokenId_) {
+        tokenId_ = tokenId;
+        tokenId += 1;
     }
 
     /**
