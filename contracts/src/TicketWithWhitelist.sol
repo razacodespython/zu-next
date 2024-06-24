@@ -27,6 +27,10 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
     uint256 public ticketPrice;
     // for whitelist
     mapping(address => bool) public whitelist;
+    // this state varibable tracks the token Id
+    uint256 public tokenId;
+    // whitelist addresses
+    address[] public whitelistAddresses;
 
 
     // ==============================
@@ -69,6 +73,7 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         ticketMintCloseTime = _ticketMintCloseTime;
         appendToWhitelist_internal(_whitelist);
 
+
         ticketPrice = _ticketPrice;
     }
 
@@ -76,19 +81,20 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
      *
      * @notice function ois used to mint ticket
      * @param to this is the address this ticket would be minted to
-     * @param tokenId this is the token ID to be minted
      * @param uri this is the Metadata URL
      */
-    function purchaseTicket(address to, uint256 tokenId, string memory uri, address payer) public {
+    function purchaseTicket(address to, string memory uri, address payer) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
         require(whitelist[_msgSender()], "Ticket: Caller is not whitelisted");
+        uint256 tokenId_ = getTokenId();
+
         handlePayment(payer);
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+        _safeMint(to, tokenId_);
+        _setTokenURI(tokenId_, uri);
         totalTicketsMinted += 1;
 
-        emit TicketMinted(to, tokenId, uri);
+        emit TicketMinted(to, tokenId_, uri);
     }
 
     /**
@@ -96,21 +102,21 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
      * @notice this function is used to mint ticket by an admin
      * @dev this function evades the `forceClosed` and `ticketMintCloseTime` checks
      * @param to this is the address this ticket would be minted to
-     * @param tokenId this is the token ID to be minted
      * @param uri this is the Metadata URL
      */
-    function adminMint(address to, uint256 tokenId, string memory uri) public onlyOwner {
-        _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
+    function adminMint(address to, string memory uri) public onlyOwner {
+        uint256 tokenId_ = getTokenId();
+        _safeMint(to, tokenId_);
+        _setTokenURI(tokenId_, uri);
         totalTicketsMinted += 1;
     }
 
     /**
      *
-     * @param tokenId this is the tokenId would metadata is being queryed
+     * @param _tokenId this is the tokenId would metadata is being queryed
      */
-    function tokenURI(uint256 tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        return super.tokenURI(tokenId);
+    function tokenURI(uint256 _tokenId) public view override(ERC721, ERC721URIStorage) returns (string memory) {
+        return super.tokenURI(_tokenId);
     }
 
     function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721URIStorage) returns (bool) {
@@ -196,6 +202,31 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         appendToWhitelist_internal(_addresses);
     }
 
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
+        require(false, "Ticket: Cannot be transferred");
+    }
+
+    function _safeTransfer(address from, address to, uint256 tokenId, bytes memory data) internal override {
+        require(false, "Ticket: Cannot be transferred");
+    }
+
+    /**
+     *
+     * @notice this function is used to get the whitelist addresses
+     */
+    function getWhitelistAddresses() public view returns (address[] memory) {
+        return whitelistAddresses;
+    }
+
+    /**
+     *
+     * @notice this function is used to check if an address is whitelisted
+     * @param _address this is the address to be checked
+     */
+    function isWhitelisted(address _address) public view returns (bool) {
+        return whitelist[_address];
+    }
+
     // =============================
     // INTERNAL FUNCTIONs
     // =============================
@@ -211,6 +242,8 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         return 20;
     }
 
+    
+
     /**
      *
      * @dev this function is used to debit ERC20 token from a `payer`, the amount debitted is the current ticket price
@@ -220,6 +253,12 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         paymentToken.transferFrom(payer, address(this), ticketPrice);
     }
 
+    function getTokenId() internal returns(uint256 tokenId_) {
+        tokenId_ = tokenId;
+        tokenId += 1;
+    }
+
+
     /**
      *
      * @param _addresses this is the list of addresses to be added to the whitelist
@@ -227,6 +266,7 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
     function appendToWhitelist_internal(address[] memory _addresses) internal {
         for (uint256 i = 0; i < _addresses.length; i++) {
             whitelist[_addresses[i]] = true;
+            whitelistAddresses.push(_addresses[i]);
         }
     }
 }
