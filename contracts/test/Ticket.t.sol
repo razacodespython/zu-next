@@ -37,7 +37,7 @@ contract TicketTest is Test {
         vm.startPrank(user);
         paymentToken.approve(address(ticket), 50 ether);
 
-        ticket.purchaseTicket(user, "https://example.com", user);
+        ticket.purchaseTicket(user, "https://example.com");
 
         assertEq(paymentToken.balanceOf(user), 999950 ether);
         assertEq(paymentToken.balanceOf(address(ticket)), 50 ether);
@@ -57,7 +57,7 @@ contract TicketTest is Test {
         vm.expectRevert("Ticket: Minting is closed");
 
         vm.startPrank(user);
-        ticket.purchaseTicket(owner, "https://example.com", user);
+        ticket.purchaseTicket(owner, "https://example.com");
     }
 
     function testPurchaseTicket_mintCloseTime() public {
@@ -70,7 +70,7 @@ contract TicketTest is Test {
         vm.expectRevert("Ticket: Minting is closed");
 
         vm.startPrank(user);
-        ticket.purchaseTicket(owner, "https://example.com", user);
+        ticket.purchaseTicket(owner, "https://example.com");
     }
 
     function testAdminMint() public {
