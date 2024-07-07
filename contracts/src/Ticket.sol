@@ -75,11 +75,12 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @param to this is the address this ticket would be minted to
      * @param uri this is the Metadata URL
      */
-    function purchaseTicket(address to, string memory uri, address payer) public {
+    function purchaseTicket(address to, string memory uri) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
         uint256 tokenId_ = getTokenId();
-        handlePayment(payer);
+
+        handlePayment(_msgSender());
         _safeMint(to, tokenId_);
         _setTokenURI(tokenId_, uri);
         totalTicketsMinted += 1;
