@@ -11,7 +11,7 @@ contract DeployFactoryScript is Script {
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
     address owner = vm.addr(deployerPrivateKey);
 
-    // function setUp() public {}
+    function setUp() public {}
 
     function run() public {
         vm.startBroadcast(deployerPrivateKey);
