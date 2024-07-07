@@ -7,7 +7,6 @@ import "forge-std/Test.sol";
 import {Ticket} from "../src/Ticket.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-
 contract TestPaymentToken is ERC20 {
     constructor(address owner) ERC20("TestPaymentToken", "TPT") {
         _mint(owner, 1000000 ether);
@@ -19,8 +18,6 @@ contract TicketTest is Test {
     Ticket ticket;
     address owner = address(0x123);
     address user = address(0x456);
-
-
 
     function setUp() public {
         paymentToken = new TestPaymentToken(user);
@@ -36,13 +33,12 @@ contract TicketTest is Test {
         );
     }
 
-
     function testPurchaseTicket() public {
         vm.startPrank(user);
         paymentToken.approve(address(ticket), 50 ether);
 
         ticket.purchaseTicket(user, "https://example.com", user);
-        
+
         assertEq(paymentToken.balanceOf(user), 999950 ether);
         assertEq(paymentToken.balanceOf(address(ticket)), 50 ether);
         assertEq(ticket.balanceOf(user), 1);

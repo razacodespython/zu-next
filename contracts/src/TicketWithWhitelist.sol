@@ -32,7 +32,6 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
     // whitelist addresses
     address[] public whitelistAddresses;
 
-
     // ==============================
     // EVENTS
     // ==============================
@@ -73,23 +72,23 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         ticketMintCloseTime = _ticketMintCloseTime;
         appendToWhitelist_internal(_whitelist);
 
-
         ticketPrice = _ticketPrice;
     }
 
     /**
      *
-     * @notice function ois used to mint ticket
+     * @notice function is used to mint ticket
      * @param to this is the address this ticket would be minted to
      * @param uri this is the Metadata URL
      */
-    function purchaseTicket(address to, string memory uri, address payer) public {
+    function purchaseTicket(address to, string memory uri) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
-        require(whitelist[_msgSender()], "Ticket: Caller is not whitelisted");
+        address owner = _msgSender();
+        require(whitelist[owner], "Ticket: Caller is not whitelisted");
         uint256 tokenId_ = getTokenId();
 
-        handlePayment(payer);
+        handlePayment(owner);
         _safeMint(to, tokenId_);
         _setTokenURI(tokenId_, uri);
         totalTicketsMinted += 1;
@@ -182,19 +181,6 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
 
     /**
      *
-     * @notice this function is used to send generic token from this contract else else-where
-     * @param recipent this is the address the balance would be sent to
-     * @param token this is the address of the token to be sent
-     * @param amount this is the amount of token to be sent
-     */
-    function withdrawGeneric(address recipent, address token, uint256 amount) public onlyOwner {
-        IERC20(token).transfer(recipent, amount);
-
-        emit Withdraw(recipent);
-    }
-
-    /**
-     *
      * @notice this function is used to add addresses to the whitelist
      * @param _addresses this is the list of addresses to be added to the whitelist
      */
@@ -242,8 +228,6 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         return 20;
     }
 
-    
-
     /**
      *
      * @dev this function is used to debit ERC20 token from a `payer`, the amount debitted is the current ticket price
@@ -253,11 +237,10 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         paymentToken.transferFrom(payer, address(this), ticketPrice);
     }
 
-    function getTokenId() internal returns(uint256 tokenId_) {
+    function getTokenId() internal returns (uint256 tokenId_) {
         tokenId_ = tokenId;
         tokenId += 1;
     }
-
 
     /**
      *
