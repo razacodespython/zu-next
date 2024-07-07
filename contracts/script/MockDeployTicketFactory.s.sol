@@ -11,7 +11,7 @@ contract DeployFactoryScript is Script {
     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
     address owner = vm.addr(deployerPrivateKey);
 
-    // function setUp() public {}
+    function setUp() public {}
 
     function run() public {
         vm.startBroadcast(deployerPrivateKey);
@@ -20,9 +20,8 @@ contract DeployFactoryScript is Script {
         Ticket ticket = new Ticket(owner, "TicketWithClass", "TWC", address(0), address(0), 2, 0, 0);
         address[] memory whitelist = new address[](1);
         whitelist[0] = address(0);
-        TicketWithWhitelist ticketWithWhitelist = new TicketWithWhitelist(
-            owner, "TicketWithWhitelist", "TWW", address(0), address(0), 2, 0, 0, whitelist
-        );
+        TicketWithWhitelist ticketWithWhitelist =
+            new TicketWithWhitelist(owner, "TicketWithWhitelist", "TWW", address(0), address(0), 2, 0, 0, whitelist);
 
         vm.stopBroadcast();
     }

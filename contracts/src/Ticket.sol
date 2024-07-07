@@ -28,7 +28,6 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
     // this state varibable tracks the token Id
     uint256 public tokenId;
 
-
     // ==============================
     // EVENTS
     // ==============================
@@ -76,11 +75,12 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
      * @param to this is the address this ticket would be minted to
      * @param uri this is the Metadata URL
      */
-    function purchaseTicket(address to, string memory uri, address payer) public {
+    function purchaseTicket(address to, string memory uri) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
         uint256 tokenId_ = getTokenId();
-        handlePayment(payer);
+
+        handlePayment(_msgSender());
         _safeMint(to, tokenId_);
         _setTokenURI(tokenId_, uri);
         totalTicketsMinted += 1;
@@ -171,6 +171,14 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         emit Withdraw(recipent);
     }
 
+    function transferFrom(address from, address to, uint256 tokenId) public override(ERC721, IERC721) {
+        require(false, "Ticket: Cannot be transferred");
+    }
+
+    function _safeTransfer(address from, address to, uint256 tokenId, bytes memory data) internal override {
+        require(false, "Ticket: Cannot be transferred");
+    }
+
     /**
      *
      * @notice this function is used to send generic token from this contract else else-where
@@ -199,7 +207,7 @@ contract Ticket is ERC721, ERC721URIStorage, Ownable, ERC2771Context {
         return 20;
     }
 
-    function getTokenId() internal returns(uint256 tokenId_) {
+    function getTokenId() internal returns (uint256 tokenId_) {
         tokenId_ = tokenId;
         tokenId += 1;
     }
