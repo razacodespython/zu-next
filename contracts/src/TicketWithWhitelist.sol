@@ -78,10 +78,9 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
     /**
      *
      * @notice function is used to mint ticket
-     * @param to this is the address this ticket would be minted to
      * @param uri this is the Metadata URL
      */
-    function purchaseTicket(address to, string memory uri) public {
+    function purchaseTicket(string memory uri) public {
         require(!forceClosed, "Ticket: Minting is closed");
         require(block.timestamp < ticketMintCloseTime, "Ticket: Minting is closed");
         address owner = _msgSender();
@@ -89,11 +88,11 @@ contract TicketWithWhitelist is ERC721, ERC721URIStorage, Ownable, ERC2771Contex
         uint256 tokenId_ = getTokenId();
 
         handlePayment(owner);
-        _safeMint(to, tokenId_);
+        _safeMint(owner, tokenId_);
         _setTokenURI(tokenId_, uri);
         totalTicketsMinted += 1;
 
-        emit TicketMinted(to, tokenId_, uri);
+        emit TicketMinted(owner, tokenId_, uri);
     }
 
     /**
